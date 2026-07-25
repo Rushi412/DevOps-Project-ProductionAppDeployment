@@ -85,4 +85,4 @@ Run `terraform destroy` when a temporary learning environment is no longer neede
 
 ## Credits
 
-This repository started as a learning exercise inspired by an external DevOps project. It has been restructured and reconfigured by Rushikesh Deshmukh as a portfolio project. Verify the original project's license and retain any required attribution before distributing this work.
+This repository started as a learning exercise created by Rushikesh Deshmukh as a portfolio project. Verify the original project's license and retain any required attribution before distributing this work.
