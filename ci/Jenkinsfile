@@ -1,0 +1,71 @@
+pipeline {
+    agent any
+
+    tools {
+        jdk 'jdk17'
+        maven 'maven'
+    }
+
+    environment {
+        IMAGE_REPOSITORY = 'rushi412/social-platform-app'
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        KUBERNETES_NAMESPACE = 'social-app'
+    }
+
+    stages {
+        stage('Test') {
+            steps {
+                sh './mvnw clean test'
+            }
+        }
+        stage('Package') {
+            steps {
+                sh './mvnw package -DskipTests'
+            }
+        }
+        stage('Filesystem Scan') {
+            steps {
+                sh 'trivy fs --exit-code 0 --severity HIGH,CRITICAL .'
+            }
+        }
+        stage('Build and Push Image') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'dockerhub-credentials', url: 'https://index.docker.io/v1/') {
+                        sh 'docker build -t $IMAGE_REPOSITORY:$IMAGE_TAG -f deploy/docker/Dockerfile .'
+                        sh 'docker push $IMAGE_REPOSITORY:$IMAGE_TAG'
+                    }
+                }
+            }
+        }
+        stage('Image Scan') {
+            steps {
+                sh 'trivy image --exit-code 0 --severity HIGH,CRITICAL $IMAGE_REPOSITORY:$IMAGE_TAG'
+            }
+        }
+        stage('Validate Kubernetes Manifests') {
+            steps {
+                sh 'kubectl apply --dry-run=client -f deploy/kubernetes/base'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                withKubeConfig([credentialsId: 'social-app-kubeconfig', namespace: 'social-app']) {
+                    sh 'kubectl apply -f deploy/kubernetes/base'
+                    sh 'kubectl set image deployment/social-platform-app social-platform-app=$IMAGE_REPOSITORY:$IMAGE_TAG -n $KUBERNETES_NAMESPACE'
+                    sh 'kubectl rollout status deployment/social-platform-app -n $KUBERNETES_NAMESPACE --timeout=180s'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            emailext(
+                subject: "${JOB_NAME} #${BUILD_NUMBER}: ${currentBuild.currentResult}",
+                body: "Build details: ${BUILD_URL}",
+                to: 'rushipdeshmukh412@gmail.com'
+            )
+        }
+    }
+}
