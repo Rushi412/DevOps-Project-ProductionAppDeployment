@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: social-platform-app-config
+  namespace: social-app
+data:
+  # Local Kubernetes uses H2 to avoid requiring a paid or separately managed database.
+  SPRING_PROFILES_ACTIVE: local

@@ -1,142 +1,88 @@
-### Full-Stack Blog App 
-```
-Job Scenario:
-I was tasked with setting up a CI/CD pipeline for a full-stack blogging app hosted on GitHub.
-The project involves integrating Jenkins for build and deployment, using SonarQube for code quality checks,
-Nexus for artifact management, and Docker for containerizing the application.
-Once deployed, we will monitor the application using Prometheus, Blackbox Exporter, and visualize it with Grafana.
-I integrated Email notification script using Groovy to send alerts when the pipeline fails or succeeds. 
-```
+# Social Platform App
 
-![1_9CvhrnA6Fg1LTmMjr3n3Kg](https://github.com/user-attachments/assets/837ea1ca-f69e-40a1-b4ee-15ace4dc3892)
+A learning and portfolio project that demonstrates a Spring Boot social-posting application with a containerized delivery workflow and no-cost local Kubernetes deployment through kind.
 
----
+## Maintainer
 
-### Project Structure.
+- **Rushikesh Deshmukh**
+- GitHub: [Rushi412](https://github.com/Rushi412)
+- LinkedIn: [Rushikesh Deshmukh](https://www.linkedin.com/in/rushikesh-d-150b271a9/)
+- Email: [rushipdeshmukh412@gmail.com](mailto:rushipdeshmukh412@gmail.com)
 
-``` 
-/full-stack-blogging-app
-├── /ci-scripts
-│   ├── install_jenkins.sh
-│   ├── install_docker.sh
-│   ├── install_blackbox.sh
-│   ├── prometheus.yml
-│   └── grafana_dashboard.json
-├── /kubernetes
-│   ├── deployment.yml
-│   ├── service.yml
-│   ├── role.yaml
-│   ├── rolebinding.yaml
-│   └── serviceaccount.yaml
-├── /terraform
-│   ├── main.tf
-│   ├── variables.tf
-│   ├── outputs.tf
-├── /src
-│   ├── app.js
-│   ├── Dockerfile
-│   └── ...
-├── README.md
+## Stack
+
+- Java 17 and Spring Boot 3
+- Spring Security, Thymeleaf, JPA, H2 for local development
+- Maven and JaCoCo
+- Docker, Kubernetes, Jenkins, Trivy
+- kind with the Docker Desktop engine for local deployment
+- Terraform and AWS EKS as an optional infrastructure study reference only
+
+## Repository layout
+
+```text
+ci/                       Jenkins pipeline
+deploy/docker/            Container build
+deploy/kubernetes/base/   Kubernetes namespace, deployment, service, and config
+docs/                     Architecture and operating notes
+infrastructure/terraform/ Optional EKS learning infrastructure
+src/                      Spring Boot application
 ```
 
----
+## Run locally
 
-####
----
+Install Java 17+. The checked-in Maven Wrapper downloads Maven automatically on first use:
 
-```markdown
-# Full-Stack Blogging App CI/CD Project 🚀
-
-## Project Overview
-This project demonstrates a complete **CI/CD pipeline** setup for deploying a full-stack blogging application, integrating modern tools like Jenkins, SonarQube, Nexus, Docker, Kubernetes (EKS), and Prometheus for monitoring. This repository showcases the **automation of code quality checks, artifact management, application deployment, and monitoring** in a production-like environment.
-
-## Key Technologies & Tools
-- Jenkins: Continuous Integration and Continuous Deployment.
-- SonarQube: Static code analysis for quality and security checks.
-- Nexus: Artifact repository manager.
-- Docker: Containerization of the application.
-- Kubernetes (EKS): Orchestration of containerized applications.
-- Prometheus & Grafana: Monitoring and visualization of application performance.
-- Blackbox Exporter: Probing application availability and uptime monitoring.
-
-## Objectives
-1. Automate the CI/CD pipeline: Automate building, testing, and deploying the blogging app.
-2. Enhance code quality and security: Use SonarQube for static code analysis and Trivy for vulnerability scans.
-3. Deploy to Kubernetes (EKS): Use Terraform to deploy and manage Kubernetes infrastructure on AWS.
-4. Monitor the application: Use Prometheus, Blackbox Exporter, and Grafana for real-time monitoring and alerting.
-
-## Repository Structure
-- `/ci-scripts`: Shell scripts for installing Jenkins, Docker, Prometheus, Grafana, and Blackbox Exporter.
-- `/kubernetes`: Kubernetes manifests for deploying the app and setting up roles and access.
-- `/terraform`: Infrastructure as Code (IaC) files to provision an EKS cluster.
-- `/src`: The source code and Dockerfile for the blogging application.
-
-## CI/CD Pipeline Overview
-
-1. **GitHub Integration**: Jenkins pulls the latest changes from the GitHub repository and triggers the pipeline.
-2. **Build & Test**:
-   - The code is compiled and built using Maven.
-   - Code analysis is done using SonarQube.
-   - Trivy scans for vulnerabilities.
-3. **Docker & Nexus**:
-   - Jenkins builds a Docker image for the application.
-   - The image is tagged and pushed to DockerHub.
-   - Artifacts are pushed to Nexus.
-4. **Kubernetes Deployment**:
-   - The app is deployed to an EKS cluster.
-   - Kubernetes handles scaling and service management.
-5. **Monitoring**:
-   - Prometheus scrapes metrics from the Blackbox Exporter.
-   - Grafana visualizes application uptime, health, and other critical metrics.
-
-## Steps to Reproduce the Project
-
-### 1. Clone the Repository
-```bash
-git clone https://github.com/ougabriel/full-stack-blogging-app.git
-cd full-stack-blogging-app
+```powershell
+.\mvnw.cmd clean test
+.\mvnw.cmd spring-boot:run
 ```
 
-### 2. Setup CI/CD Pipeline with Jenkins
-- Install Jenkins using the provided script:
-```bash
-./ci-scripts/install_jenkins.sh 
-```
-- Configure Jenkins with plugins for Docker, SonarQube, Maven, and Kubernetes.
+The application runs at `http://localhost:8080`. The H2 console is enabled only in the default local profile.
 
-### 3. Set up Kubernetes (EKS)
-- Deploy the EKS cluster using Terraform:
-```bash
-cd terraform
+## Docker
+
+```powershell
+docker build -t social-platform-app:local -f deploy/docker/Dockerfile .
+docker run --rm -p 8080:8080 social-platform-app:local
+```
+
+Push production images with immutable tags, for example `rushi412/social-platform-app:42`; do not rely on `latest`.
+
+## Kubernetes
+
+The application uses namespace `social-app` and a standalone kind cluster as its no-cost learning target. Follow the [local Kubernetes guide](deploy/kubernetes/local/README.md) to create the cluster and deploy the application.
+
+Validate the manifests before any deployment:
+
+```powershell
+kubectl apply --dry-run=client -f deploy/kubernetes/base
+```
+
+The local manifests use H2 and require no database setup. For a future production deployment, copy `deploy/kubernetes/examples/secret.example.yaml` to `secret.yaml`, replace the database placeholders, set the active profile to `prod`, and apply the secret separately. The real secret file is ignored by Git.
+
+The Jenkins pipeline deploys an image tagged with the Jenkins build number and waits for a rollout to complete. Configure the `dockerhub-credentials` and `social-app-kubeconfig` credential IDs in Jenkins before running it.
+
+## Optional infrastructure study reference
+
+Terraform defaults to `ap-south-1`, selected for geographic proximity. AWS has no free EKS region: the EKS control plane, worker nodes, networking, and storage may be charged. This repository's supported learning path is standalone kind; do not run Terraform unless you intentionally want a billable AWS exercise.
+
+```powershell
+Set-Location infrastructure/terraform
+terraform fmt -recursive
 terraform init
-terraform apply --auto-approve
-```
-- Apply Kubernetes manifests to deploy the application:
-```bash
-kubectl apply -f kubernetes/deployment.yml
+terraform validate
+terraform plan
 ```
 
-### 4. Setup Monitoring with Prometheus and Grafana
-- Install Prometheus and Grafana using the provided scripts:
-```bash
-./ci-scripts/install_blackbox.sh
-./ci-scripts/install_prometheus.sh
-```
-- Access Grafana and Prometheus through the browser:
-  - Grafana: `http://<your-server-ip>:3000`
-  - Prometheus: `http://<your-server-ip>:9090`
+Run `terraform destroy` when a temporary learning environment is no longer needed.
 
-## Key Pipeline Stages
-1. Git Checkout: Pulls the latest code from GitHub.
-2. Build & Analysis: Maven builds the app, SonarQube analyzes the code.
-3. Vulnerability Scan: Trivy scans the Docker image for vulnerabilities.
-4. Docker Build & Push: Builds a Docker image and pushes it to DockerHub.
-5. Deploy to EKS: Deploys the app to the Kubernetes cluster.
-6. Monitor: Monitors uptime and performance using Prometheus and Grafana.
+## Security notes
 
-## Project Highlights
-- Full CI/CD Automation: Automates the entire software development lifecycle, from code commit to deployment.
-- Real-Time Monitoring: Integrates a comprehensive monitoring system using Prometheus and Grafana to ensure the app's health.
-- Security-Focused: Static code analysis via SonarQube and vulnerability scans via Trivy ensure high code quality and security.
+- Never commit `.env`, credentials, kubeconfigs, Terraform state, or Docker tokens.
+- Development and production database configuration is provided through `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD`.
+- H2 Console is local only; it is disabled in `dev` and `prod` profiles.
 
+## Credits
 
+This repository started as a learning exercise inspired by an external DevOps project. It has been restructured and reconfigured by Rushikesh Deshmukh as a portfolio project. Verify the original project's license and retain any required attribution before distributing this work.

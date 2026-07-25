@@ -1,0 +1,17 @@
+target/
+.idea/
+.vscode/
+*.iml
+
+.env
+.env.*
+!.env.example
+
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+
+deploy/kubernetes/examples/secret.yaml
+
+*.log
