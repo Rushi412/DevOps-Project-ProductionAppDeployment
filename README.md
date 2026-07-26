@@ -18,6 +18,28 @@ A learning and portfolio project that demonstrates a Spring Boot social-posting 
 - kind with the Docker Desktop engine for local deployment
 - Terraform and AWS EKS as an optional infrastructure study reference only
 
+## Architecture
+
+See [architecture documentation](docs/architecture.md).
+
+## Demo workflow
+
+1. Run Maven tests and generate the application JAR.
+2. Build a multi-stage Docker image.
+3. Scan source code and the image using Trivy.
+4. Deploy the image to the local kind Kubernetes cluster.
+5. Kubernetes runs the application in the `social-app` namespace.
+6. Access the application through port forwarding and verify `/actuator/health`.
+
+## Evidence
+
+| Area | Command |
+|---|---|
+| Tests | `.\mvnw.cmd clean test` |
+| Docker build | `docker build -t social-platform-app:local -f deploy/docker/Dockerfile .` |
+| Kubernetes status | `kubectl get all -n social-app` |
+| Health check | `Invoke-WebRequest http://localhost:8080/actuator/health` |
+
 ## Repository layout
 
 ```text
@@ -28,6 +50,18 @@ docs/                     Architecture and operating notes
 infrastructure/terraform/ Optional EKS learning infrastructure
 src/                      Spring Boot application
 ```
+
+### Local application
+
+![Social Platform App login page](docs/images/application-login.png)
+
+### Kubernetes deployment
+
+![Kubernetes resources](docs/images/kubernetes-deployment.png)
+
+### Test coverage
+
+![JaCoCo test coverage](docs/images/test-coverage.png)
 
 ## Run locally
 
@@ -86,3 +120,6 @@ Run `terraform destroy` when a temporary learning environment is no longer neede
 ## Credits
 
 This repository started as a learning exercise created by Rushikesh Deshmukh as a portfolio project. Verify the original project's license and retain any required attribution before distributing this work.
+
+
+[def]: docs/images/test-coverage.png
