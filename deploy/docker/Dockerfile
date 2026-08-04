@@ -9,6 +9,7 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
+RUN apk upgrade --no-cache
 RUN addgroup -S spring && adduser -S spring -G spring
 COPY --from=build /workspace/target/*.jar app.jar
 
