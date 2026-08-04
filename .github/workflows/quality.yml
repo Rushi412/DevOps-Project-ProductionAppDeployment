@@ -25,6 +25,7 @@ jobs:
       - name: Scan repository
         uses: aquasecurity/trivy-action@v0.36.0
         with:
+          version: v0.73.0
           scan-type: fs
           scan-ref: pom.xml
           scanners: vuln
@@ -34,6 +35,7 @@ jobs:
       - name: Scan container
         uses: aquasecurity/trivy-action@v0.36.0
         with:
+          version: v0.73.0
           image-ref: social-platform-app:${{ github.sha }}
           severity: HIGH,CRITICAL
           ignore-unfixed: true
