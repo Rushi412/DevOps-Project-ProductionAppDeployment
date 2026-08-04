@@ -16,7 +16,8 @@ A learning and portfolio project that demonstrates a Spring Boot social-posting 
 - Maven and JaCoCo
 - Docker, Kubernetes, Jenkins, Trivy
 - kind with the Docker Desktop engine for local deployment
-- Terraform and AWS EKS as an optional infrastructure study reference only
+- Terraform and AWS EKS as a cost-guarded, deployment-ready study path
+- Kustomize overlays, Argo CD GitOps, Prometheus metrics, and k6 smoke testing
 
 ## Architecture
 
@@ -30,6 +31,8 @@ See [architecture documentation](docs/architecture.md).
 4. Deploy the image to the local kind Kubernetes cluster.
 5. Kubernetes runs the application in the `social-app` namespace.
 6. Access the application through port forwarding and verify `/actuator/health`.
+
+The cloud-ready path adds an EKS overlay, a rolling strategy, autoscaling, a disruption budget, Argo CD reconciliation, Prometheus scraping, and a rollback script. It is validated as configuration only; no paid AWS resources are provisioned by this repository.
 
 ## Evidence
 
@@ -46,8 +49,12 @@ See [architecture documentation](docs/architecture.md).
 ci/                       Jenkins pipeline
 deploy/docker/            Container build
 deploy/kubernetes/base/   Kubernetes namespace, deployment, service, and config
+deploy/kubernetes/overlays/ Local and EKS-specific Kustomize configuration
+deploy/gitops/             Argo CD application definition
+deploy/monitoring/         Prometheus ServiceMonitor
 docs/                     Architecture and operating notes
-infrastructure/terraform/ Optional EKS learning infrastructure
+infrastructure/terraform/ Cost-guarded EKS-ready infrastructure
+tests/load/                k6 smoke and acceptance thresholds
 src/                      Spring Boot application
 ```
 
@@ -97,19 +104,18 @@ The local manifests use H2 and require no database setup. For a future productio
 
 The Jenkins pipeline deploys an image tagged with the Jenkins build number and waits for a rollout to complete. Configure the `dockerhub-credentials` and `social-app-kubeconfig` credential IDs in Jenkins before running it.
 
-## Optional infrastructure study reference
+## EKS-ready infrastructure without deployment
 
-Terraform defaults to `ap-south-1`, selected for geographic proximity. AWS has no free EKS region: the EKS control plane, worker nodes, networking, and storage may be charged. This repository's supported learning path is standalone kind; do not run Terraform unless you intentionally want a billable AWS exercise.
+Terraform defaults to `ap-south-1`, selected for geographic proximity. AWS has no free EKS region: the EKS control plane, worker nodes, networking, and storage may be charged. The committed environment deliberately keeps `confirm_paid_eks = false`; no paid deployment has been performed.
 
 ```powershell
 Set-Location infrastructure/terraform
 terraform fmt -recursive
 terraform init
 terraform validate
-terraform plan
 ```
 
-Run `terraform destroy` when a temporary learning environment is no longer needed.
+See the [Terraform safety guide](infrastructure/terraform/README.md), [GitOps guide](deploy/gitops/README.md), and [load-test evidence guide](docs/load-testing.md). Run `terraform destroy` after any future approved temporary demonstration.
 
 ## Security notes
 

@@ -1,4 +1,5 @@
 target/
+.codex-cache/
 .idea/
 .vscode/
 *.iml
@@ -11,6 +12,7 @@ target/
 *.tfstate
 *.tfstate.*
 *.tfvars
+!infrastructure/terraform/environments/*.tfvars
 
 deploy/kubernetes/examples/secret.yaml
 

@@ -1,0 +1,10 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: social-platform-app
+  namespace: social-app
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: social-platform-app

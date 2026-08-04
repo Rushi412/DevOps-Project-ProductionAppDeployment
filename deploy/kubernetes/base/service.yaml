@@ -3,6 +3,8 @@ kind: Service
 metadata:
   name: social-platform-app
   namespace: social-app
+  labels:
+    app: social-platform-app
 spec:
   type: ClusterIP
   selector:

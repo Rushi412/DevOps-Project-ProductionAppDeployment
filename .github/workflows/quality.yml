@@ -1,0 +1,52 @@
+name: Quality and deployment validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  application:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+      - name: Test and package
+        run: ./mvnw --batch-mode clean verify
+      - name: Build container
+        run: docker build -t social-platform-app:${{ github.sha }} -f deploy/docker/Dockerfile .
+      - name: Scan repository
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+      - name: Scan container
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: social-platform-app:${{ github.sha }}
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+
+  configuration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-kubectl@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: Render local Kubernetes overlay
+        run: kubectl kustomize deploy/kubernetes/overlays/local > /tmp/social-platform-rendered.yaml
+      - name: Check Terraform formatting
+        run: terraform -chdir=infrastructure/terraform fmt -check -recursive
+      - name: Validate Terraform configuration without a backend
+        run: |
+          terraform -chdir=infrastructure/terraform init -backend=false
+          terraform -chdir=infrastructure/terraform validate

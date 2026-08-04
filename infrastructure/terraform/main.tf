@@ -13,6 +13,15 @@ provider "aws" {
   region = var.aws_region
 }
 
+resource "terraform_data" "cost_acknowledgement" {
+  lifecycle {
+    precondition {
+      condition     = var.confirm_paid_eks
+      error_message = "EKS is billable. Set confirm_paid_eks=true only for an approved temporary deployment."
+    }
+  }
+}
+
 data "aws_availability_zones" "available" {
   state = "available"
 }
@@ -42,7 +51,7 @@ resource "aws_subnet" "social_platform" {
   map_public_ip_on_launch = true
 
   tags = merge(local.common_tags, {
-    Name                                      = "${var.project_name}-subnet-${count.index + 1}"
+    Name                                                = "${var.project_name}-subnet-${count.index + 1}"
     "kubernetes.io/cluster/${var.project_name}-cluster" = "shared"
   })
 }
@@ -94,6 +103,11 @@ resource "aws_eks_cluster" "social_platform" {
   }
 
   tags = local.common_tags
+
+  depends_on = [
+    terraform_data.cost_acknowledgement,
+    aws_iam_role_policy_attachment.cluster,
+  ]
 }
 
 resource "aws_eks_node_group" "social_platform" {
@@ -104,12 +118,16 @@ resource "aws_eks_node_group" "social_platform" {
   instance_types  = [var.node_instance_type]
 
   scaling_config {
-    desired_size = 1
-    max_size     = 2
+    desired_size = var.node_desired_size
+    max_size     = var.node_max_size
     min_size     = 1
   }
 
   tags = local.common_tags
+
+  depends_on = [
+    aws_iam_role_policy_attachment.node_group,
+  ]
 }
 
 resource "aws_iam_role" "cluster" {

@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: social-platform-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Rushi412/DevOps-Project-ProductionAppDeployment.git
+    targetRevision: main
+    path: deploy/kubernetes/overlays/eks
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: social-app
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
