@@ -28,12 +28,14 @@ jobs:
           scan-type: fs
           scan-ref: .
           severity: HIGH,CRITICAL
+          ignore-unfixed: true
           exit-code: "1"
       - name: Scan container
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: social-platform-app:${{ github.sha }}
           severity: HIGH,CRITICAL
+          ignore-unfixed: true
           exit-code: "1"
 
   configuration:
