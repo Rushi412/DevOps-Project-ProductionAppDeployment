@@ -125,7 +125,4 @@ See the [Terraform safety guide](infrastructure/terraform/README.md), [GitOps gu
 
 ## Credits
 
-This repository started as a learning exercise created by Rushikesh Deshmukh as a portfolio project. Verify the original project's license and retain any required attribution before distributing this work.
-
-
-[def]: docs/images/test-coverage.png
+The Spring Boot application started from an open-source learning project and is used here as the workload. The delivery setup around it (Jenkins pipeline, Trivy scanning, Kubernetes manifests and Kustomize overlays, Argo CD, Terraform for EKS, k6 smoke tests and rollback) was built by Rushikesh Deshmukh as a portfolio project.
